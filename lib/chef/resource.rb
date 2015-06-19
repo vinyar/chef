@@ -197,22 +197,13 @@ class Chef
     def self.property(name, type=NOT_PASSED, **options)
       name = name.to_sym
 
-      # Combine the type with "is"
-      if type != NOT_PASSED
-        if options[:is]
-          options[:is] = ([ type ] + [ options[:is] ]).flatten(1)
-        else
-          options[:is] = type
-        end
-      end
-
       local_properties = properties(false)
 
       # Inherit from the current / parent property if type is not passed
       if type == NOT_PASSED && properties[name]
         local_properties[name] = properties[name].specialize(declared_in: self, **options)
       else
-        local_properties[name] = Property.new(name: name, declared_in: self, **options)
+        local_properties[name] = property_type(name: name, declared_in: self, **options)
       end
 
       begin
@@ -232,6 +223,38 @@ class Chef
           self.class.properties[name].set(self, value)
         end
       end
+    end
+
+    #
+    # Create a property type that can be reused for multiple properties.
+    #
+    # @param type [Object,Array<Object>] The type(s) of this property.
+    #   If present, this is prepended to the `is` validation option.
+    # @param options [Hash<Symbol,Object>] Validation options. See #property
+    #
+    # @example Bare property type
+    #   property_type
+    #
+    # @example With just a type
+    #   property_type String
+    #
+    # @example With just options
+    #   property_type default: 'hi'
+    #
+    # @example With type and options
+    #   property_type String, default: 'hi'
+    #
+    def self.property_type(type=NOT_PASSED, **options)
+      # Combine the type with "is"
+      if type != NOT_PASSED
+        if options[:is]
+          options[:is] = ([ type ] + [ options[:is] ]).flatten(1)
+        else
+          options[:is] = type
+        end
+      end
+
+      Property.new(**options)
     end
 
     #
