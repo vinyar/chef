@@ -165,7 +165,7 @@ class Chef
                 # This returns the gem which satisfies the dependency along with all of its deps
                 rs = Gem::RequestSet.new
                 rs.import [ gem_dependency ]
-                resolved_spec = rs.resolve.collect { |spec| spec.name == gem_dependency.name }.first
+                resolved_spec = rs.resolve.select { |spec| spec.name == gem_dependency.name }.first
                 resolved_spec && [ resolved_spec.spec, resolved_spec.source ]
               elsif available_gems.respond_to?(:last)
                 # Rubygems < 2.0 sorts results such that the last one is the 'best' one
