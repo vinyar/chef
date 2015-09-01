@@ -297,6 +297,8 @@ class Chef
         end
         events.run_failed(run_error)
       ensure
+        GC.start
+        puts GC.stat
         Chef::RequestID.instance.reset_request_id
         request_id = nil
         @run_status = nil
