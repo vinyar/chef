@@ -111,7 +111,7 @@ module ChefConfig
       task :package_components do
         component_full_paths.each do |component_path|
           Dir.chdir(component_path) do
-            sh 'rake package'
+            sh 'bundle exec rake package'
           end
         end
       end
@@ -122,7 +122,7 @@ module ChefConfig
       task :install_components => :package_components do
         component_full_paths.each do |component_path|
           Dir.chdir(component_path) do
-            sh 'rake install'
+            sh 'bundle exec rake install'
           end
         end
       end
