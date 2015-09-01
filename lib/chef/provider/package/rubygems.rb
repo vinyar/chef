@@ -160,18 +160,24 @@ class Chef
           # the constraints of +gem_dependency+
           def find_newest_remote_version(gem_dependency, *sources)
             available_gems = dependency_installer.find_gems_with_sources(gem_dependency)
-            spec, source = if available_gems.respond_to?(:last)
-              # DependencyInstaller sorts the results such that the last one is
-              # always the one it considers best.
-              spec_with_source = available_gems.last
-              spec_with_source && spec_with_source
-            else
-              # Rubygems 2.0 returns a Gem::Available set, which is a
-              # collection of AvailableSet::Tuple structs
-              available_gems.pick_best!
-              best_gem = available_gems.set.first
-              best_gem && [best_gem.spec, best_gem.source]
-            end
+            spec, source =
+              if !Chef::Config[:rubygems_cache_enabled]
+                # This returns the gem which satisfies the dependency along with all of its deps
+                rs = Gem::RequestSet.new
+                rs.import [ gem_dependency ]
+                resolved_spec = rs.resolve.collect { |spec| spec.name == gem_dependency.name }.first
+                resolved_spec && [ resolved_spec.spec, resolved_spec.source ]
+              elsif available_gems.respond_to?(:last)
+                # Rubygems < 2.0 sorts results such that the last one is the 'best' one
+                spec_with_source = available_gems.last
+                spec_with_source && spec_with_source
+              else
+                # Rubygems 2.0 returns a Gem::Available set, which is a
+                # collection of AvailableSet::Tuple structs
+                available_gems.pick_best!
+                best_gem = available_gems.set.first
+                best_gem && [best_gem.spec, best_gem.source]
+              end
 
             version = spec && spec.version
             if version
