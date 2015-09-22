@@ -684,6 +684,11 @@ module ChefConfig
     default :normal_attribute_whitelist, nil
     default :override_attribute_whitelist, nil
 
+    # Only use fips compliant algorithms
+    default( :fips_mode ) do
+      OpenSSL::OPENSSL_FIPS
+    end
+
     config_context :windows_service do
       # Set `watchdog_timeout` to the number of seconds to wait for a chef-client run
       # to finish
