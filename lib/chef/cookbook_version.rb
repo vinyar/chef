@@ -25,6 +25,7 @@ require 'chef/cookbook/metadata'
 require 'chef/version_class'
 require 'chef/digester'
 require 'chef/cookbook_manifest'
+require 'chef/util/fips'
 
 class Chef
 
@@ -96,11 +97,7 @@ class Chef
     # This is the one and only method that knows how cookbook files'
     # checksums are generated.
     def self.checksum_cookbook_file(filepath)
-      if Chef::Config.fips_mode
-        # This will require a chef server that can handle
-        # sha256 checksums
-        Chef::Digester.checksum_for_file(filepath)
-      else
+      Chef::Util::FIPS.disable do
         Chef::Digester.generate_md5_checksum_for_file(filepath)
       end
     rescue Errno::ENOENT

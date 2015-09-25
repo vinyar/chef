@@ -18,6 +18,7 @@
 
 require 'chef/chef_fs/file_system/base_fs_object'
 require 'chef/http/simple'
+require 'chef/util/fips'
 require 'openssl'
 
 class Chef
@@ -74,12 +75,9 @@ class Chef
         private
 
         def calc_checksum(value)
-          alg = if Chef::Config.fips_mode
-                  OpenSSL::Digest::SHA256
-                else
-                  OpenSSL::Digest::MD5
-                end
-          alg.new.hexdigest(value)
+          Chef::Util::FIPS.disable do
+            OpenSSL::Digest::MD5.new.hexdigest(value)
+          end
         end
       end
     end
