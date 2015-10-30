@@ -30,8 +30,7 @@ class Chef
         # Declare that our arguments should be arrays
         package_class_supports_arrays
 
-        # Responsible for building the current_resource and as a (necessary)
-        # side effect this populates the candidate_version Array.
+        # Responsible for building the current_resource.
         #
         # @return [Chef::Resource::ChocolateyPackage] the current_resource
         def load_current_resource
