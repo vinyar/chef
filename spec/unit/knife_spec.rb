@@ -468,6 +468,16 @@ describe Chef::Knife do
       expect(stderr.string).to match(%r[Exception: NameError: Undefined constant FUUU])
     end
 
+    it "includes the backtrace in debug output for NoMethodError" do
+      exception = NoMethodError.new("undefined method `empty?' for nil:NilClass")
+      backtrace = ["foo.rb:1","bar.rb:2","baz.rb:3"]
+      allow(exception).to receive(:backtrace).and_return(backtrace)
+
+      allow(knife).to receive(:run).and_raise(exception)
+      expect(Chef::Log).to receive(:debug).with(backtrace.join("\n"))
+      knife.run_with_pretty_exceptions
+    end
+
     it "formats missing private key errors nicely" do
       allow(knife).to receive(:run).and_raise(Chef::Exceptions::PrivateKeyMissing.new('key not there'))
       allow(knife).to receive(:api_key).and_return("/home/root/.chef/no-key-here.pem")
