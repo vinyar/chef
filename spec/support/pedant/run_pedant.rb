@@ -31,6 +31,7 @@ def start_server(chef_repo_path)
   server
 end
 
+
 tmpdir = Dir.mktmpdir
 begin
   # Create chef repository
@@ -38,26 +39,46 @@ begin
 
   # Capture setup data into master_chef_repo_path
   server = start_server(chef_repo_path)
-  so = nil
 
-  include Chef::Mixin::ShellOut
+  begin
+    require 'rspec/core'
+    require 'pedant'
+    require 'pedant/organization'
 
-  Bundler.with_clean_env do
+    #Pedant::Config.rerun = true
 
-    shell_out("bundle install --gemfile spec/support/pedant/Gemfile", :live_stream => STDOUT)
+    Pedant.config.suite = 'api'
+    Pedant.config.internal_server = 'http://localhost:8889'
+    Pedant.config[:config_file] = 'spec/support/oc_pedant.rb'
+    Pedant.config[:server_api_version] = 0
+    Pedant.setup([
+      '--skip-knife',
+      '--skip-keys',
+      '--skip-controls',
+      '--skip-acl',
+      '--skip-validation',
+      '--skip-authentication',
+      '--skip-authorization',
+      '--skip-omnibus',
+      '--skip-usags',
+      '--exclude-internal-orgs',
+      '--skip-headers',
 
-    pedant_cmd = "chef-pedant " +
-        " --config spec/support/pedant/pedant_config.rb" +
-        " --server '#{server.url}'" +
-        " --skip-knife --skip-validation --skip-authentication" +
-        " --skip-authorization --skip-omnibus"
-    so = shell_out("bundle exec #{pedant_cmd}", :live_stream => STDOUT, :env => {'BUNDLE_GEMFILE' => 'spec/support/pedant/Gemfile'})
+      # Chef 12 features not yet 100% supported by Chef Zero
+      '--skip-policies',
+      '--skip-cookbook-artifacts',
+      '--skip-containers',
+      '--skip-api-v1'
 
-  end
+    ])
+
+    result = RSpec::Core::Runner.run(Pedant.config.rspec_args)
+
+    server.stop if server.running?
 
 ensure
   server.stop if server && server.running?
   FileUtils.remove_entry_secure(tmpdir) if tmpdir
 end
 
-exit(so.exitstatus)
+exit(result || 111)
