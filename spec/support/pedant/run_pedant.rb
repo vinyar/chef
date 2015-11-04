@@ -40,41 +40,39 @@ begin
   # Capture setup data into master_chef_repo_path
   server = start_server(chef_repo_path)
 
-  begin
-    require 'rspec/core'
-    require 'pedant'
-    require 'pedant/organization'
+  require 'pedant'
+  require 'pedant/organization'
 
-    #Pedant::Config.rerun = true
+  #Pedant::Config.rerun = true
 
-    Pedant.config.suite = 'api'
-    Pedant.config.internal_server = 'http://localhost:8889'
-    Pedant.config[:config_file] = 'spec/support/oc_pedant.rb'
-    Pedant.config[:server_api_version] = 0
-    Pedant.setup([
-      '--skip-knife',
-      '--skip-keys',
-      '--skip-controls',
-      '--skip-acl',
-      '--skip-validation',
-      '--skip-authentication',
-      '--skip-authorization',
-      '--skip-omnibus',
-      '--skip-usags',
-      '--exclude-internal-orgs',
-      '--skip-headers',
+  Pedant.config.suite = 'api'
+  Pedant.config.internal_server = 'http://localhost:8889'
+  Pedant.config[:config_file] = 'spec/support/pedant/pedant_config.rb'
+  Pedant.config[:server_api_version] = 0
+  Pedant.setup([
+    '--skip-knife',
+    '--skip-keys',
+    '--skip-controls',
+    '--skip-acl',
+    '--skip-validation',
+    '--skip-authentication',
+    '--skip-authorization',
+    '--skip-omnibus',
+    '--skip-usags',
+    '--exclude-internal-orgs',
+    '--skip-headers',
 
-      # Chef 12 features not yet 100% supported by Chef Zero
-      '--skip-policies',
-      '--skip-cookbook-artifacts',
-      '--skip-containers',
-      '--skip-api-v1'
+    # Chef 12 features not yet 100% supported by Chef Zero
+    '--skip-policies',
+    '--skip-cookbook-artifacts',
+    '--skip-containers',
+    '--skip-api-v1'
 
-    ])
+  ])
 
-    result = RSpec::Core::Runner.run(Pedant.config.rspec_args)
+  result = RSpec::Core::Runner.run(Pedant.config.rspec_args)
 
-    server.stop if server.running?
+  server.stop if server.running?
 
 ensure
   server.stop if server && server.running?
